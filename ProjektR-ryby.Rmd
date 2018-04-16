@@ -1,28 +1,113 @@
 ---
 title: "ProjektR"
 output: html_document
+keep_md: yes
+    theme: flatly
+    toc: yes
+    toc_float: TRUE
 ---
+1. Przygotowanie bibliotek do pracy
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+```{r biblioteki echo=FALSE}
+#load libraries
+library(knitr)       # report generation
+library(dplyr)       # data manipulation
+library(ggplot2)     # plots visualisation
+library(gridExtra)   # multiple plots on grid
+library(corrplot)    # correlation matrix visualisation
+library(caret)       # data exploration lib
+library(randomForest)# rf
 ```
 
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
-```
-
-## Including Plots
-
-You can also embed plots, for example:
+2. Ładowanie oraz struktura danych
 
 ```{r pressure, echo=FALSE}
-plot(pressure)
+sledzie <- read.csv("sledzie.csv", na.strings = "?")
+str(sledzie)
+```
+Zbiór danych zawiera 52582 obserwacje opisane 15 atrybutami:
+length: długość złowionego śledzia [cm]
+cfin1: dostępność planktonu [zagęszczenie Calanus finmarchicus gat. 1]
+cfin2: dostępność planktonu [zagęszczenie Calanus finmarchicus gat. 2]
+chel1: dostępność planktonu [zagęszczenie Calanus helgolandicus gat. 1]
+chel2: dostępność planktonu [zagęszczenie Calanus helgolandicus gat. 2]
+lcop1: dostępność planktonu [zagęszczenie widłonogów gat. 1]
+lcop2: dostępność planktonu [zagęszczenie widłonogów gat. 2]
+fbar: natężenie połowów w regionie [ułamek pozostawionego narybku]
+recr: roczny narybek [liczba śledzi]
+cumf: łączne roczne natężenie połowów w regionie [ułamek pozostawionego narybku]
+totaln: łączna liczba ryb złowionych w ramach połowu [liczba śledzi]
+sst: temperatura przy powierzchni wody [°C]
+sal: poziom zasolenia wody [Knudsen ppt]
+xmonth: miesiąc połowu [numer miesiąca]
+nao: oscylacja północnoatlantycka [mb]
+
+3. Analiza rozkładu atrybutów
+
+```{r}
+summary(sledzie[-1])
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+4. Wartości puste
+
+Zbiór danych opisujący połów śledzi zawiera ponad 10 tys. niepełnych obserwacji. Całkowity zbiór składa się z ponad 52 tys. pomiarów. Pomijając prawie 20% danych zostałyby utracone istotne informacje.
+
+Na podstawie podsumowania statystyki załadowanego pliku można zauważyć, że brakujące dane występują jedynie w atrybutach opisujących:
+
+- dostępność planktonu (cfin1, cfin2, chel1, chel2, lcop1, lcop2),
+- temperaturę przy powierzchni wody (sst).
+
+W zbiorze danych można zwrócić uwagę, że wartości atrybutów występują w podobnych grupach. Dla przedstawienia tej tezy wybrałem przykładowe trzy podzbiory sąsiadujących ze sobą elementów:
+
+```{r}
+sledzie[c(1:5, 1001:1005, 20001:20005), ]
+```
+
+Można zaobserować, że będące blisko siebie elementy mają prawie zawsze takie same wartości na atrybutach cfin1, cfin2, chel1, chel2, lcop1, lcop2, fbar, recr, cumf, totaln, sst, sal, xmonth, nao, a różnice są niewielkie lub ich nie ma. W pierwszym rzędzie wartość X=1 cechę 'chel2', możnaby uzupełnić o wartość 21.43548. Podobnie w 1004 wierszu lcop na 9.01000 itd.
+
+Do uzupełnienia wartości pustych w wybranych wierszach, zostaną wyznaczone wiersze posiadające grupy podobne do uzupełnianego wiersza. Następnie z podobnych grup wyznaczona zostanie mediana dla danej wartości.
+
+```{r}
+#Skrócony algorytm wyznaczania grup podobnych i mediany do uzupełnienia wartości pustych (przykład dla atrybutu sst)
+sl <- sledzie[is.na(sledzie$sst), ]
+for(i in 1:nrow(sl)){
+  row <- sl[i,]
+  #wyznaczanie grup podobnych na podstawie atrybutów totaln, sal, xmonth oraz nao
+  podobneGrupy <- sledzie[
+      sledzie$totaln == row$totaln &
+      sledzie$sal == row$sal &
+      sledzie$xmonth == row$xmonth &
+      sledzie$nao == row$nao, ]
+  #przypisanie mediany
+  sl[i,]$sst <- median(podobneGrupy$sst, na.rm = TRUE)
+}
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
