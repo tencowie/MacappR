@@ -1,7 +1,6 @@
 ---
 title: "ProjektR"
 output: html_document
-keep_md: yes
     theme: flatly
     toc: yes
     toc_float: TRUE
@@ -82,6 +81,69 @@ for(i in 1:nrow(sl)){
   sl[i,]$sst <- median(podobneGrupy$sst, na.rm = TRUE)
 }
 ```
+
+Po zamianie pustych wartości na podobne, podsumowanie zbioru danych wygląda następujaco:
+
+```{r echo=FALSE}
+summary(sledzie[-1])
+```
+
+
+5. Analiza atrybutów zbioru danych
+
+- Długość śledzia
+```{r echo=FALSE}
+boxplot(sledzie$length, horizontal=TRUE, main="Długość śledzia")
+```
+- Dostępność pożywienia (planktonu)
+
+```{r echo=FALSE}
+boxplot(sledzie[,3:8], main="Dostępność planktonu", 
+        names=c("Calanus finmarchicus", "Calanus finmarchicus", "Calanus helgolandicus", "Calanus helgolandicus", "widłonogi", "widłonogi"))
+```
+- Częstotliwość połowów w regionie
+```{r echo=FALSE}
+boxplot(sledzie$fbar, horizontal=TRUE, main="Częstotliwość połowów")
+```
+
+- Przyrost roczny narybku
+```{r echo=FALSE}
+boxplot(sledzie$recr, horizontal=TRUE, main="Roczny przyrost narybku")
+```
+- Natężenie połowów w roku
+```{r echo=FALSE}
+boxplot(sledzie$cumf, horizontal=TRUE, main="Łączne roczna ilość połowów w regionie")
+```
+- Ilość złowionych ryb
+```{r echo=FALSE}
+boxplot(sledzie$totaln, horizontal=TRUE, main="Łączna liczba ryb złowionych")
+```
+- Temperatura wody przy lustrze
+```{r echo=FALSE}
+boxplot(sledzie$sst, horizontal=TRUE, main="Temperatura wody")
+```
+- Zasolenie wody
+```{r echo=FALSE}
+boxplot(sledzie$sal, horizontal=TRUE, main="Poziom zasolenia")
+```
+- Oscylacja północnoatlantycka
+```{r echo=FALSE}
+boxplot(sledzie$nao, horizontal=TRUE, main="Oscylacja północnoatlantycka")
+```
+
+6. Analiza korelacji
+
+Do analizy związków pomiędzy wszystkimi atrybutami wykorzystałem wizualizację macierzy korelacji.
+```{r}
+corrplot(corOne, method = "square")
+```
+
+Na wykresie można zaobserwować silną korelację między długością ryby a poziomem zasolenia wody morskiej oraz temperaturą wody.
+
+Rozmiar śledzia jest także skorelowany z ilością złowionych ryb oraz dostępnością planktonu (chel2 - Calanus helgolandicus gat. 2 i lcop2 - widłonogów gat. 2).
+
+
+
 
 
 
